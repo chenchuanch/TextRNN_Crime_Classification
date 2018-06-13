@@ -5,7 +5,6 @@ import itertools
 #import tensorflow as tf
 import pandas as pd
 import numpy as np
-import json as js
 from collections import Counter
 
 logging.getLogger().setLevel(logging.INFO)
@@ -50,10 +49,14 @@ def pad_sentences(sentences, padding_word="<PAD/>", forced_sequence_lengh=None):
 	return padded_sentences
 
 def build_vocab(sentences):
-	logging.info('Build vocabulary...')
+    logging.info('Build vocabulary...')
+    word_counts = Counter(itertools.chain(*sentences))
+    
+    vocabulary_inv = [word[0] for word in word_counts.most_common()]
+    vocabulary = {word: index for index, word in enumerate(vocabulary_inv)}
 
-	word_counts = Counter(itertools.chain(*sentences))
-	vocabulary_inv = [word[0] for word in word_counts.most_common()]
+    return vocabulary, vocabulary_inv
+
 
 def load_data(filename):
 	logging.info('Loading Data...')
@@ -68,15 +71,17 @@ def load_data(filename):
 
 	labels = sorted(list(set(df[selected[0]].tolist())))
 	num_label = len(labels)
-	one_hot = np.zeros((num_label,num_label),int)
+	one_hot = np.zeros((num_label,num_label), int)
 	np.fill_diagonal(one_hot, 1)
 	label_dict = dict(zip(labels, one_hot))
 
 	x_raw = df[selected[1]].apply(lambda x: clean_str(x).split(' ')).tolist()
 	y_raw = df[selected[0]].apply(lambda y: label_dict[y]).tolist()
-
 	x_raw = pad_sentences(x_raw)
 	vocabulary, vocabulary_inv = build_vocab(x_raw)
+
+	x = np.array([[vocabulary[word] for word in sentence] for sentence in x_raw])
+	y = np.array(y_raw)
 
 if __name__=="__main__":
 	train_file = './data/train.csv.zip'
