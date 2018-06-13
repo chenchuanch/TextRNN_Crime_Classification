@@ -49,13 +49,13 @@ def pad_sentences(sentences, padding_word="<PAD/>", forced_sequence_lengh=None):
 	return padded_sentences
 
 def build_vocab(sentences):
-    logging.info('Build vocabulary...')
-    word_counts = Counter(itertools.chain(*sentences))
-    
-    vocabulary_inv = [word[0] for word in word_counts.most_common()]
-    vocabulary = {word: index for index, word in enumerate(vocabulary_inv)}
+	logging.info('Build vocabulary...')
+	word_counts = Counter(itertools.chain(*sentences))
 
-    return vocabulary, vocabulary_inv
+	vocabulary_inv = [word[0] for word in word_counts.most_common()]
+	vocabulary = {word: index for index, word in enumerate(vocabulary_inv)}
+
+	return vocabulary, vocabulary_inv
 
 
 def load_data(filename):
