@@ -1,10 +1,12 @@
 import os
 import re
 import logging
+import itertools
 #import tensorflow as tf
 import pandas as pd
 import numpy as np
 import json as js
+from collections import Counter
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -27,22 +29,38 @@ def clean_str(s):
 	return s.strip().lower()
 
 def pad_sentences(sentences, padding_word="<PAD/>", forced_sequence_lengh=None):
-	if forced_sequence_lengh is None:
-		sequence_lengh = max(len(x) for x in senteces)
-	else:
-		sequence_lengh = forced_sequence_lengh
-	logging.critical('The maximum length is {}'.format(sequence_lengh))
+	logging.info('Padding Centences...')
 
+	if forced_sequence_lengh is None: #train
+		sequence_length = max(len(x) for x in sentences)
+	else:#prediection
+		sequence_length = forced_sequence_lengh
+	logging.critical('The maximum length is {}'.format(sequence_length))
+
+	padded_sentences = []
+	for i in range(len(sentences)):
+		sentence = sentences[i]
+		num_padding = sequence_length - len(sentence)
+		if num_padding < 0:
+			logging.info('This sentence has to cut off because it is longer than trained sequence length')
+			padded_sentence = sentence[0:sequence_length]
+		else:
+			padded_sentence = sentence + [padding_word] * num_padding
+		padded_sentences.append(padded_sentence)
+	return padded_sentences
+
+def build_vocab(sentences):
+	logging.info('Build vocabulary...')
+
+	word_counts = Counter(itertools.chain(*sentences))
+	vocabulary_inv = [word[0] for word in word_counts.most_common()]
 
 def load_data(filename):
+	logging.info('Loading Data...')
+
 	df = pd.read_csv(filename, compression = 'zip')
 	selected = ['Category', 'Descript']
 	non_selected = list(set(df.columns) - set(selected))
-
-	if DEBUG:
-		print df.columns
-		print "========"
-		print set(df[selected[0]])
 
 	df = df.drop(non_selected, axis=1)
 	df = df.dropna(axis=0, how='any', subset=selected)
@@ -55,19 +73,10 @@ def load_data(filename):
 	label_dict = dict(zip(labels, one_hot))
 
 	x_raw = df[selected[1]].apply(lambda x: clean_str(x).split(' ')).tolist()
-	y_raw = df[selected[0]].apply(lambd y: label_dict[y]).tolist()
+	y_raw = df[selected[0]].apply(lambda y: label_dict[y]).tolist()
 
 	x_raw = pad_sentences(x_raw)
-
-
-	if DEBUG:
-		print "========"
-		print dict(zip(labels, one_hot))
-		string = "aaa bbb ccc"
-		print clean_str(string).split(' ')
-
-
-	
+	vocabulary, vocabulary_inv = build_vocab(x_raw)
 
 if __name__=="__main__":
 	train_file = './data/train.csv.zip'
