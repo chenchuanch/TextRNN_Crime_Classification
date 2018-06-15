@@ -83,6 +83,8 @@ def load_data(filename):
 	x = np.array([[vocabulary[word] for word in sentence] for sentence in x_raw])
 	y = np.array(y_raw)
 
+	return x, y, vocabulary, vocabulary_inv, df, labels
+
 if __name__=="__main__":
 	train_file = './data/train.csv.zip'
 	load_data(train_file)
