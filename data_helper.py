@@ -47,6 +47,14 @@ def pad_sentences(sentences, padding_word="<PAD/>", forced_sequence_lengh=None):
 			padded_sentence = sentence + [padding_word] * num_padding
 		padded_sentences.append(padded_sentence)
 	return padded_sentences
+def batch_iter(data, batch_size, num_epochs, shuffle=True):
+	data = np.array(data)
+	data_size = len(data)
+	num_batches_per_epoch
+
+
+
+
 
 def build_vocab(sentences):
 	logging.info('Build vocabulary...')
